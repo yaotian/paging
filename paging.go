@@ -1,13 +1,14 @@
 package paging
 
 import (
+	"errors"
 	"github.com/yaotian/logs"
 	"strconv"
 )
 
 const (
-	lineSize          = 15
-	show_HowMany_Page = 6
+	lineSize          = 10
+	show_HowMany_Page = 4
 )
 
 type Paging interface {
@@ -118,15 +119,28 @@ func Pagination(current_page_str string, totalCount uint) (Paging, error) {
 	return page, nil
 }
 
-func Make_paging(current_page_str string, data_for_process []interface{}) interface{} {
+func Make_paging(current_page_str string, data_for_process []interface{}) (interface{}, error) {
 
 	len_of_coming_data := len(data_for_process)
 
 	page, err := Pagination(current_page_str, uint(len_of_coming_data))
 	if err != nil {
 		logs.Logger.Error("paging: ", err.Error())
-		return "error"
+		return nil, errors.New("error")
 	}
+
+	from_current_page_str, err := strconv.ParseUint(current_page_str, 10, 32)
+	if err != nil {
+		logs.Logger.Error("Atoi: ", err.Error())
+	}
+
+	if int(from_current_page_str) > int(page.TotalPage()) {
+		return nil, errors.New("current page is bigger than total page. wrong request")
+	}
+
+	logs.Logger.Debug(current_page_str)
+	logs.Logger.Debug(page.CurrentPage())
+	logs.Logger.Debug(page.TotalPage())
 
 	firstResult := (page.CurrentPage() - uint(1)) * page.LineSize()
 	maxResult := page.LineSize()
@@ -136,6 +150,8 @@ func Make_paging(current_page_str string, data_for_process []interface{}) interf
 	if firstResult+maxResult < uint(len_of_coming_data) {
 		result_for_show = (data_for_process)[firstResult : firstResult+maxResult]
 	} else {
+		logs.Logger.Debug(firstResult)
+		logs.Logger.Debug(len_of_coming_data)
 		result_for_show = (data_for_process)[firstResult:len_of_coming_data]
 	}
 
@@ -167,7 +183,7 @@ func Make_paging(current_page_str string, data_for_process []interface{}) interf
 	//for gc
 	result_for_show = nil
 
-	return data
+	return data, nil
 
 	//return renderTemplate("index", data)
 }
