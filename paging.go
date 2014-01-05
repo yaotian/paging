@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	lineSize          = 10
+	lineSize          = 8
 	show_HowMany_Page = 4
 )
 
