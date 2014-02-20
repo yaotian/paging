@@ -2,12 +2,13 @@ package paging
 
 import (
 	"errors"
-	"github.com/yaotian/logs"
 	"strconv"
+
+	"github.com/yaotian/logs"
 )
 
 const (
-	lineSize          = 8
+	lineSize          = 60
 	show_HowMany_Page = 4
 )
 
